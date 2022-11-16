@@ -19,6 +19,7 @@ Datasets:
 - RWTH-PHOENIX-Weather 2014 T: https://www-i6.informatik.rwth-aachen.de/~koller/RWTH-PHOENIX-2014-T/
 - DGS Corpus: https://www.sign-lang.uni-hamburg.de/meinedgs/ling/start_de.html
   -> how to use: https://www.sign-lang.uni-hamburg.de/dgs-korpus/index.php/publications.html
+- Content4All: SWISSTXT-NEWS, SWISSTXT-WEATHER, VRT-NEWS: https://www.cvssp.org/data/c4a-news-corpus/
 
 Following ToDos:
 - check reply of Dr. Camgöz about code availability
