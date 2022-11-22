@@ -12,7 +12,7 @@ General Background Papers:
 - Selva: Video Transformers: A Survey, 2022
 - Liu: Video Swin Transformer, 2022
 - Dosovitskiy: Vision Transformer, AN IMAGE IS WORTH 16X16 WORDS: TRANSFORMERS FOR IMAGE RECOGNITION AT SCALE, 2021
-
+- Lu: ViLBERT: Pretraining Task-Agnostic Visiolinguistic Representations for Vision-and-Language Tasks, 2019
 
 Datasets:
 - RWTH-PHOENIX-Weather: https://www-i6.informatik.rwth-aachen.de/~forster/database-rwth-phoenix.php
