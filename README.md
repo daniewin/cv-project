@@ -22,6 +22,25 @@ Datasets:
 - Content4All: SWISSTXT-NEWS, SWISSTXT-WEATHER, VRT-NEWS: https://www.cvssp.org/data/c4a-news-corpus/
 
 Following ToDos:
+
+25/11-1/12:
+- start writing review
+  -> evaluation metrics, datasets with examples, introduction of glosses, SL specifities, SLR, SLT, SLP
+- read x prioritized papers -> see excel overview
+
+2/12-8/12:
+- try running first available code that might be suitable as base paper
+- read x prioritized papers -> see excel overview
+- write review
+  -> different models: (CNN+LSTM, RNN, Transformer, other combinations)
+  -> challenges in the field
+
+9/12-15/12:
+- read other papers -> see excel overview
+- finish review
+  -> outlooks, possible projects topics
+  
+----------------------------------------------------------------------
 - check reply of Dr. Camgöz about code availability
 - text Thomas Hanke of the DGS Institute about current implementations
 - check current papers with implementations using DGS Corpus
