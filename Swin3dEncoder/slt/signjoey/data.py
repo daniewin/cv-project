@@ -172,7 +172,7 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Dataset, Vocabulary, Vocabul
 
     gls_field.vocab = gls_vocab
     txt_field.vocab = txt_vocab
-    return train_data, train_data, test_data, gls_vocab, txt_vocab
+    return train_data, dev_data, test_data, gls_vocab, txt_vocab
 
 
 # TODO (Cihan): I don't like this use of globals.

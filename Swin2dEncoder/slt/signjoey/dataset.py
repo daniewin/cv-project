@@ -78,7 +78,7 @@ class SignTranslationDataset(data.Dataset):
                 sign_video, _, _ = read_video(video_path, output_format="THWC", pts_unit="sec")
                 print(sign_video.shape)
                 no_frames = sign_video.shape[0]
-                if no_frames >= 100: # dont use shorter videos
+                if no_frames >= 100 and no_frames <= 200: # dont use shorter videos
                     factor = no_frames/100
                     print("downsampling factor is ", factor)
                     #sign_video_np = np.zeros((no_frames//factor, sign_video.shape[1], sign_video.shape[2], 3))
