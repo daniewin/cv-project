@@ -1,4 +1,3 @@
-test
 name: sign_experiment
 data:
     data_path: ../../slt_with_pytorch_swin2d_embedder_and_trans_encoder_separate/slt/data/
