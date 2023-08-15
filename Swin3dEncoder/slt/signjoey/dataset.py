@@ -74,7 +74,7 @@ class SignTranslationDataset(data.Dataset):
 
             video_path = os.path.join(path, seq_id + ".mp4")
 
-            if Path(video_path).exists() and counter < 1500:
+            if Path(video_path).exists() and counter < 2000:
                 sign_video, _, _ = read_video(video_path, output_format="THWC", pts_unit="sec")
                 print(sign_video.shape)
                 no_frames = sign_video.shape[0]
