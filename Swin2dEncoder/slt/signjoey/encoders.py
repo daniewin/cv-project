@@ -305,7 +305,7 @@ class SwinTransformerEncoder(Encoder):
             dropout: float = 0.0,
             attention_dropout: float = 0.0,
             stochastic_depth_prob: float = 0.1,
-            num_classes: int = 1024,
+            num_classes: int = 768,
             progress: bool = True,
             weights: Optional[Swin_T_Weights] = None,
             norm_layer: Optional[Callable[..., nn.Module]] = None,
