@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.models.video.swin_transformer import swin3d_t, Swin3D_T_Weights
+from torchvision.models.swin_transformer import Swin_T_Weights, swin_t
 from itertools import groupby
 from signjoey.initialization import initialize_model
 from signjoey.embeddings import Embeddings, SpatialEmbeddings
@@ -57,7 +57,7 @@ class SignModel(nn.Module):
         :param do_translation: flag to build the model with translation decoder.
         """
         super().__init__()
-        self.embedder = SwinTransformerEncoder(weights=Swin3D_T_Weights.DEFAULT)
+        self.embedder = SwinTransformerEncoder(weights=Swin_T_Weights.DEFAULT)
         self.encoder = encoder
         self.decoder = decoder
 

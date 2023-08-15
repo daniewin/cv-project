@@ -4,10 +4,9 @@ import torch
 from torchvision.ops.misc import Permute
 from torch import nn, Tensor
 from torchvision.utils import _log_api_usage_once
-from torchvision.models.video.swin_transformer import ShiftedWindowAttention3d, Swin3D_T_Weights, swin3d_t
+from torchvision.models.swin_transformer import ShiftedWindowAttention, Swin_T_Weights, swin_t
 from torchvision.models._utils import _ovewrite_named_param
-from torchvision.models.video.swin_transformer import PatchEmbed3d, SwinTransformerBlock
-from torchvision.models.swin_transformer import PatchMerging
+from torchvision.models.swin_transformer import PatchMerging, SwinTransformerBlock
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from typing import Any, Callable, List, Optional
 from functools import partial
@@ -15,6 +14,7 @@ from functools import partial
 
 from signjoey.helpers import freeze_params
 from signjoey.transformer_layers import TransformerEncoderLayer, PositionalEncoding
+
 
 
 # pylint: disable=abstract-method
@@ -255,7 +255,6 @@ class TransformerEncoder(Encoder):
         )
 
 
-
 class SwinTransformerEncoder(Encoder):
     """
     Implements 3D Swin Transformer from the `"Video Swin Transformer" <https://arxiv.org/abs/2106.13230>`_ paper.
@@ -293,59 +292,68 @@ class SwinTransformerEncoder(Encoder):
 
     """
 
-
     def __init__(
-        self,
-        #weights: None,
-        num_heads=[3, 6, 12, 24],
-        patch_size=[2, 4, 4],
-        embed_dim=96,
-        depths=[2, 2, 6, 2],
-        window_size=[8, 7, 7],
-        mlp_ratio: float = 4.0,
-        dropout: float = 0.0,
-        attention_dropout: float = 0.0,
-        stochastic_depth_prob: float = 0.1,
-        num_classes: int = 400,
-        progress: bool = True,
-        weights: Optional[Swin3D_T_Weights] = None,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
-        block: Optional[Callable[..., nn.Module]] = None,
-        downsample_layer: Callable[..., nn.Module] = PatchMerging,
-        patch_embed: Optional[Callable[..., nn.Module]] = None,
-        **kwargs: Any,
+            self,
+            # weights: None,
+            num_heads=[3, 6, 12, 24],
+            patch_size=[4, 4],
+            embed_dim=96,
+            depths=[2, 2, 6, 2],
+            window_size=[7, 7],
+            mlp_ratio: float = 4.0,
+            dropout: float = 0.0,
+            attention_dropout: float = 0.0,
+            stochastic_depth_prob: float = 0.1,
+            num_classes: int = 1024,
+            progress: bool = True,
+            weights: Optional[Swin_T_Weights] = None,
+            norm_layer: Optional[Callable[..., nn.Module]] = None,
+            block: Optional[Callable[..., nn.Module]] = None,
+            downsample_layer: Callable[..., nn.Module] = PatchMerging,
+            # patch_embed: Optional[Callable[..., nn.Module]] = None,
+            **kwargs: Any,
 
     ) -> None:
         super().__init__()
         _log_api_usage_once(self)
         self.num_classes = num_classes
-        self._output_size = 8*embed_dim
+        self._output_size = 8 * embed_dim
 
-        weights = Swin3D_T_Weights.verify(weights)
+        weights = Swin_T_Weights.verify(weights)
         if weights is not None:
             _ovewrite_named_param(kwargs, "num_classes", len(weights.meta["categories"]))
 
         if block is None:
-            block = partial(SwinTransformerBlock, attn_layer=ShiftedWindowAttention3d)
+            block = SwinTransformerBlock
 
         if norm_layer is None:
             norm_layer = partial(nn.LayerNorm, eps=1e-5)
 
-        if patch_embed is None:
-            patch_embed = PatchEmbed3d
+        # if patch_embed is None:
+        #    patch_embed = PatchEmbed #3d
 
         # split image into non-overlapping patches
-        self.patch_embed = patch_embed(patch_size=patch_size, embed_dim=embed_dim, norm_layer=norm_layer)
-        self.pos_drop = nn.Dropout(p=dropout)
-        self.upsample = nn.ConvTranspose2d(768, 768, 3, stride=2, padding=1)
+        # self.patch_embed = patch_embed(patch_size=patch_size, embed_dim=embed_dim, norm_layer=norm_layer)
+        # self.pos_drop = nn.Dropout(p=dropout)
 
         layers: List[nn.Module] = []
+        # split image into non-overlapping patches
+        layers.append(
+            nn.Sequential(
+                nn.Conv2d(
+                    3, embed_dim, kernel_size=(patch_size[0], patch_size[1]), stride=(patch_size[0], patch_size[1])
+                ),
+                Permute([0, 2, 3, 1]),
+                norm_layer(embed_dim),
+            )
+        )
+
         total_stage_blocks = sum(depths)
         stage_block_id = 0
         # build SwinTransformer blocks
         for i_stage in range(len(depths)):
             stage: List[nn.Module] = []
-            dim = embed_dim * 2**i_stage
+            dim = embed_dim * 2 ** i_stage
             for i_layer in range(depths[i_stage]):
                 # adjust stochastic depth probability based on the depth of the stage block
                 sd_prob = stochastic_depth_prob * float(stage_block_id) / (total_stage_blocks - 1)
@@ -360,23 +368,22 @@ class SwinTransformerEncoder(Encoder):
                         attention_dropout=attention_dropout,
                         stochastic_depth_prob=sd_prob,
                         norm_layer=norm_layer,
-                        attn_layer=ShiftedWindowAttention3d,
                     )
                 )
                 stage_block_id += 1
-            print(nn.Sequential(*stage))
             layers.append(nn.Sequential(*stage))
             # add patch merging layer
             if i_stage < (len(depths) - 1):
                 layers.append(downsample_layer(dim, norm_layer))
-        self.layers = layers
+
         self.features = nn.Sequential(*layers)
 
-        self.num_features = embed_dim * 2 ** (len(depths) - 1)
-        self.norm = norm_layer(self.num_features)
+        num_features = embed_dim * 2 ** (len(depths) - 1)
+        self.norm = norm_layer(num_features)
+        self.permute = Permute([0, 3, 1, 2])  # B H W C -> B C H W
         self.avgpool = nn.AdaptiveAvgPool2d(1)
-        self.head = nn.Linear(self.num_features, num_classes)
-
+        self.flatten = nn.Flatten(1)
+        self.linear = nn.Linear(num_features, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Linear):
@@ -387,47 +394,34 @@ class SwinTransformerEncoder(Encoder):
         if weights is not None:
             self.load_state_dict(weights.get_state_dict(progress=progress), strict=False)  # , check_hash=True))
 
+        # freeze model
+        #freeze_params(self)
 
     def forward(self, video: Tensor):#, src_length: Tensor, mask: Tensor) -> (Tensor, Tensor):
         x = video
-        #print("VIDEO SRC")
-        #print(x.shape)
-        #print(video.size())
-        #print(type(x))
-        # x: B C T H W
-        B, F, H, W, C = x.size()
-        x = x.permute(0, 4, 1, 2, 3)
-        #print(x.size())
-        x = self.patch_embed(x)  # B _T _H _W C
-        #print(x.size())
-        x = self.pos_drop(x)
-        #print(x.size())
-        x = self.features(x)  # B _T _H _W C
-        #print("x.shape")
-        #print(x.shape)
+        print("VIDEO SRC")
+        print(x.shape)
+        x = x[0]
+        print(x.size())
+        x = x.permute(0, 3, 1, 2)
+        print(x.size())
+        x = self.features(x)
+        print(x.size())
         x = self.norm(x)
-        #print("x.shape after norm")
-        #print(x.shape)
-        x = x.permute(0, 4, 1, 2, 3)  # B, C, _T, _H, _W
-        #print("x.shape after permute")
-        #print(x.shape)
+        print(x.size())
+
+        x = self.permute(x)
+        print(x.size())
+
         x = self.avgpool(x)
-        #print("x.shape after avg pool")
-        #print(x.shape)
-        x = torch.flatten(x,3)
-        #print("x.shape after flatten")
-        #print(x.shape)
+        print(x.size())
 
-        x = self.upsample(x, output_size=(torch.Size([B, 768, F, 1])))
-        #print("x.shape after upsample")
-        #print(x.shape)
-        x = x.permute(0, 2, 1, 3)  # B, C, _T, _H, _W
-        #print("x.shape after permute")
-        #print(x.shape)
-        x = torch.flatten(x, 2)
-        #print("x.shape after flatten")
-        #print(x.shape)
-
+        x = self.flatten(x)
+        print("before linear", x.size())
+        x = self.linear(x)
+        print("after linear", x.size())
+        x = torch.unsqueeze(x, 0)
+        print(x.size())
         return x, None
 
 
