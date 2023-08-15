@@ -417,16 +417,16 @@ class SwinTransformerEncoder(Encoder):
         x = torch.flatten(x,3)
         print("x.shape after flatten")
         print(x.shape)
-
-        x = self.upsample(x, output_size=(torch.Size([B, 768, F, 1])))
+        x = torch.flatten(x, 2)
+        print("x.shape after flatten")
+        print(x.shape)
+        x = self.upsample(x, output_size=(torch.Size([B, 768, F])))
         print("x.shape after upsample")
         print(x.shape)
         x = x.permute(0, 2, 1, 3)  # B, C, _T, _H, _W
         print("x.shape after permute")
         print(x.shape)
-        x = torch.flatten(x, 2)
-        print("x.shape after flatten")
-        print(x.shape)
+
 
         return x, None
 
