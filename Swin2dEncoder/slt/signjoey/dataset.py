@@ -74,7 +74,7 @@ class SignTranslationDataset(data.Dataset):
 
             video_path = os.path.join(path, seq_id + ".mp4")
 
-            if Path(video_path).exists() and counter < 100:
+            if Path(video_path).exists() and counter < 1500:
                 sign_video, _, _ = read_video(video_path, output_format="THWC", pts_unit="sec")
                 print(sign_video.shape)
                 no_frames = sign_video.shape[0]
@@ -83,21 +83,13 @@ class SignTranslationDataset(data.Dataset):
                     print("downsampling factor is ", factor)
                     #sign_video_np = np.zeros((no_frames//factor, sign_video.shape[1], sign_video.shape[2], 3))
                     lower_step = int(np.floor(factor))
-                    print(lower_step)
                     upper_step = int(np.ceil(factor))
-                    print(upper_step)
                     decimal = int((factor % 1)*100)
-                    print(decimal)
                     step_1 = lower_step
-                    print(step_1)
                     start_1 = lower_step - 1
-                    print(start_1)
                     end_1 = (100-decimal) * step_1
-                    print(end_1)
                     step_2 = upper_step
-                    print(step_2)
                     start_2 = end_1 - 1 + step_2
-                    print(start_2)
                     #print("downsampled video frames", no_frames//factor)
                     sign_video_1 = sign_video[start_1:end_1:step_1]  # take every factor-th frame
                     sign_video_2 = sign_video[start_2::step_2]   # take every factor-th frame
