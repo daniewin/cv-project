@@ -1,6 +1,6 @@
 name: sign_experiment
 data:
-    data_path: ./data/
+    data_path: ../../Data/
     version: phoenix_2014_trans
     sgn: sign
     txt: text
@@ -71,8 +71,8 @@ training:
     translation_max_output_length: 30
     keep_last_ckpts: 1
     batch_multiplier: 1
-    logging_freq: 10
-    validation_freq: 1000
+    logging_freq: 100
+    validation_freq: 500
     betas:
     - 0.9
     - 0.998
