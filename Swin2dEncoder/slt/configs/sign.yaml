@@ -96,13 +96,13 @@ model:
         num_heads_swin: [3, 6, 12, 24]
         embeddings:
             input_size: 768
-            embedding_dim: 1024
+            embedding_dim: 768
             scale: false
             dropout: 0.1
             dropout_swin: 0.1
             norm_type: batch
             activation_type: softsign
-        hidden_size: 1024
+        hidden_size: 768
         ff_size: 2048
         dropout: 0.1
     decoder:
@@ -110,11 +110,11 @@ model:
         num_layers: 3
         num_heads: 8
         embeddings:
-            embedding_dim: 1024
+            embedding_dim: 768
             scale: false
             dropout: 0.1
             norm_type: batch
             activation_type: softsign
-        hidden_size: 1024
+        hidden_size: 768
         ff_size: 2048
         dropout: 0.1

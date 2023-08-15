@@ -245,6 +245,7 @@ class TransformerEncoder(Encoder):
 
         for layer in self.layers:
             x = layer(x, mask)
+            print("after encoder layer", x.size())
         return self.layer_norm(x), None
 
     def __repr__(self):
