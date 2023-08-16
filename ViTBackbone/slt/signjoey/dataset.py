@@ -7,6 +7,7 @@ from torchtext.data import Field, RawField
 from typing import List, Tuple
 import pickle
 import gzip
+from PIL import Image
 import torch
 import os
 from torchvision.models.vision_transformer import ViT_B_16_Weights
@@ -133,22 +134,31 @@ class SignTranslationDataset(data.Dataset):
         super().__init__(examples, fields, **kwargs)
 
     def get_embeddings(self, sign_video):
-        sign_video = sign_video.to(torch.float32)
+        #sign_video = sign_video.to(torch.float32)
         print("video shape", sign_video.shape)
         print("type", type(sign_video))
         #print(sign_video[24])
         #sign_video = sign_video.numpy()
         #for i in range(sign_video.shape[0]):
             # im = Image.fromarray(sign_video[i])
-
+        sign_video_resized = torch.zeros((100, 224, 224, 3))
         #    images.append(sign_video[i])
+        for i in range(sign_video.shape[0]):
+            frame = sign_video[i]
+            image = Image.fromarray(frame, 'RGB')
+            image_resized = image.resize((224, 244))
+            image.show()
+            sign_video_resized[i] = np.array(image_resized).to(torch.float32)
+
+        print("video shape", sign_video.shape)
+        print("type", type(sign_video))
 
         model = VisionTransformerEncoder(weights=ViT_B_16_Weights.DEFAULT)
 
         #images = torch.from_numpy(np.asarray(images))
 
         with torch.no_grad():
-            outputs = model(sign_video.unsqueeze(0))[0]
+            outputs = model(sign_video_resized.unsqueeze(0))[0]
         #output = outputs.pooler_output
         print("embedding shape", outputs.shape)
         return outputs
