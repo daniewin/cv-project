@@ -416,6 +416,7 @@ class VisionTransformerEncoder(Encoder):
     def forward(self, x: torch.Tensor):
         # extract batch
         x = x[0]
+        x = x.permute(0, 3, 1, 2)
         # Reshape and permute the input tensor
         x = self._process_input(x)
         n = x.shape[0]
