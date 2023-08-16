@@ -417,7 +417,7 @@ class VisionTransformerEncoder(Encoder):
         # extract batch
         x = x[0]
         print(x.shape)
-        x = x.permute(0, 3, 1, 2)
+        #x = x.permute(0, 3, 1, 2)
         print(x.shape)
         # Reshape and permute the input tensor
         x = self._process_input(x)
