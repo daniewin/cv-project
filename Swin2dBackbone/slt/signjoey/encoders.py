@@ -407,19 +407,19 @@ class SwinTransformerEncoder(Encoder):
         print(x.shape)
         x = x[0]
 
-        #print(x.size())
+        print(x.size())
         x = x.permute(0, 3, 1, 2)
-        #print(x.size())
+        print(x.size())
         x = self.features(x)
-        #print(x.size())
-        x = self.norm(x)
+        print(x.size())
+        #x = self.norm(x)
         #print(x.size())
 
         x = self.permute(x)
-        #print(x.size())
+        print(x.size())
 
         x = self.avgpool(x)
-        #print(x.size())
+        print(x.size())
 
         x = self.flatten(x)
         #print(x.size())
