@@ -425,44 +425,7 @@ class SwinTransformerEncoder(Encoder):
         #print(x.size())
         #x = torch.unsqueeze(x, 0)
         print(x.size())
-        #x = self.head(x)
-        #print(x.size())
 
-        #print(video.size())
-        #print(type(x))
-        # x: B C T H W
-        #B, F, H, W, C = x.size()
-        #x = x.permute(0, 4, 1, 2, 3)
-        #print(x.size())
-        #x = self.patch_embed(x)  # B _T _H _W C
-        #print(x.size())
-        #x = self.pos_drop(x)
-        #print(x.size())
-        #x = self.features(x)  # B _T _H _W C
-        #print("x.shape")
-        #print(x.shape)
-        #x = self.norm(x)
-        #print("x.shape after norm")
-        #print(x.shape)
-        #x = x.permute(0, 4, 1, 2, 3)  # B, C, _T, _H, _W
-        #print("x.shape after permute")
-        #print(x.shape)
-        #x = self.avgpool(x)
-        #print("x.shape after avg pool")
-        #print(x.shape)
-        #x = torch.flatten(x,3)
-        #print("x.shape after flatten")
-        ##print(x.shape)
-        #upsample = nn.ConvTranspose2d(768, 768, 3, stride=2, padding=1)
-        #x = upsample(x, output_size=(torch.Size([B, 768, F, 1])))
-       # print("x.shape after upsample")
-       # print(x.shape)
-        #x = x.permute(0, 2, 1, 3)  # B, C, _T, _H, _W
-        #print("x.shape after permute")
-        #print(x.shape)
-        #x = torch.flatten(x, 2)
-        #print("x.shape after flatten")
-        #print(x.shape)
         return x, None
 
 
