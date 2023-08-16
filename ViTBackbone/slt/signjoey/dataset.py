@@ -138,6 +138,7 @@ class SignTranslationDataset(data.Dataset):
         sign_video = sign_video.to(torch.float32)
         print("video shape", sign_video.shape)
         print("type", type(sign_video))
+        print(sign_video[0])
         torchvision.utils.save_image(sign_video[0], "img.png")
         #    images.append(sign_video[i])
         sign_video_resized = torchvision.transforms.functional.resize(sign_video, (224, 224))
