@@ -290,9 +290,9 @@ class VisionTransformerEncoder(Encoder):
         **kwargs: Any,
     ):
         super().__init__()
+        image_size = kwargs.pop("image_size", 224)
         weights = ViT_B_16_Weights.verify(weights)
         _log_api_usage_once(self)
-        image_size = kwargs.pop("image_size", 224)
         torch._assert(image_size % patch_size == 0, "Input shape indivisible by patch size!")
         self.image_size = image_size
         self.patch_size = patch_size
@@ -308,6 +308,7 @@ class VisionTransformerEncoder(Encoder):
             _ovewrite_named_param(kwargs, "num_classes", len(weights.meta["categories"]))
             assert weights.meta["min_size"][0] == weights.meta["min_size"][1]
             _ovewrite_named_param(kwargs, "image_size", weights.meta["min_size"][0])
+            print("IMAGE SIZE OVERWRITTEN TO", weights.meta["min_size"][0])
 
 
         if conv_stem_configs is not None:
