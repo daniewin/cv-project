@@ -9,8 +9,8 @@ import pickle
 import gzip
 import torch
 import os
-from torchvision.models.swin_transformer import swin_t, Swin_T_Weights
-from signjoey.encoders import SwinTransformerEncoder
+from torchvision.models.vision_transformer import ViT_B_16_Weights
+from signjoey.encoders import VisionTransformerEncoder
 import torch
 import numpy as np
 from torchvision.io import read_video
@@ -143,7 +143,7 @@ class SignTranslationDataset(data.Dataset):
 
         #    images.append(sign_video[i])
 
-        model = SwinTransformerEncoder(weights=Swin_T_Weights.DEFAULT)
+        model = SwinTransformerEncoder(weights=ViT_B_16_Weights.IMAGENET1K_V1)
 
         #images = torch.from_numpy(np.asarray(images))
 

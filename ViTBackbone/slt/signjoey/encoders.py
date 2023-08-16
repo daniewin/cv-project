@@ -2,13 +2,17 @@
 
 import torch
 import torch.nn as nn
-from torchvision.models.swin_transformer import swin_t, Swin_T_Weights
+from torchvision.models.vision_transformer import ViT_B_16_Weights, ConvStemConfig
+import math
+
+from collections import OrderedDict
 from torch import Tensor
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from functools import partial
 from torchvision.transforms._presets import VideoClassification
 from torchvision.utils import _log_api_usage_once
-from torchvision.ops.misc import Permute
+from torchvision.ops.misc import Conv2dNormActivation, MLP
+
 from torchvision.models.video.swin_transformer import SwinTransformer3d, shifted_window_attention_3d, ShiftedWindowAttention3d, PatchEmbed3d
 from typing import Any, Callable, Dict, cast, TypeVar, List, Mapping, Optional, Type, Union
 from torchvision.models._api import register_model, Weights, WeightsEnum
@@ -262,207 +266,164 @@ class TransformerEncoder(Encoder):
         )
 
 
-class SwinTransformerEncoder(Encoder):
-    """
-    Implements 3D Swin Transformer from the `"Video Swin Transformer" <https://arxiv.org/abs/2106.13230>`_ paper.
-    Constructs a swin_tiny architecture from
-    `Video Swin Transformer <https://arxiv.org/abs/2106.13230>`_.
-
-    Args:
-        patch_size (List[int]): Patch size.
-        embed_dim (int): Patch embedding dimension.
-        depths (List(int)): Depth of each Swin Transformer layer.
-        num_heads (List(int)): Number of attention heads in different layers.
-        window_size (List[int]): Window size.
-        mlp_ratio (float): Ratio of mlp hidden dim to embedding dim. Default: 4.0.
-        dropout (float): Dropout rate. Default: 0.0.
-        attention_dropout (float): Attention dropout rate. Default: 0.0.
-        stochastic_depth_prob (float): Stochastic depth rate. Default: 0.1.
-        num_classes (int): Number of classes for classification head. Default: 400.
-        norm_layer (nn.Module, optional): Normalization layer. Default: None.
-        block (nn.Module, optional): SwinTransformer Block. Default: None.
-        downsample_layer (nn.Module): Downsample layer (patch merging). Default: PatchMerging.
-        patch_embed (nn.Module, optional): Patch Embedding layer. Default: None.
-        weights (:class:`~torchvision.models.video.Swin3D_T_Weights`, optional): The
-            pretrained weights to use. See
-            :class:`~torchvision.models.video.Swin3D_T_Weights` below for
-            more details, and possible values. By default, no pre-trained
-            weights are used.
-        progress (bool, optional): If True, displays a progress bar of the
-            download to stderr. Default is True.
-        **kwargs: parameters passed to the ``torchvision.models.video.swin_transformer.SwinTransformer``
-            base class. Please refer to the `source code
-            <https://github.com/pytorch/vision/blob/main/torchvision/models/video/swin_transformer.py>`_
-            for more details about this class.
-    .. autoclass:: torchvision.models.video.Swin3D_T_Weights
-        :members:
-
-    """
+class VisionTransformerEncoder(Encoder):
+    """Vision Transformer as per https://arxiv.org/abs/2010.11929."""
 
     def __init__(
         self,
-        #weights: None,
-        num_heads = [3, 6, 12, 24],
-        patch_size=[4, 4],
-        embed_dim=96,
-        depths=[2, 2, 6, 2],
-        window_size=[7, 7],
-        mlp_ratio: float = 4.0,
+        weights: Optional[WeightsEnum],
+        progress: bool,
+        patch_size=16,
+        num_layers=12,
+        num_heads=12,
+        hidden_dim=768,
+        mlp_dim=3072,
         dropout: float = 0.0,
         attention_dropout: float = 0.0,
-        stochastic_depth_prob: float = 0.1,
         num_classes: int = 1000,
-        progress: bool = True,
-        weights: Optional[Swin_T_Weights] = None,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
-        block: Optional[Callable[..., nn.Module]] = None,
-        downsample_layer: Callable[..., nn.Module] = PatchMerging,
-        #patch_embed: Optional[Callable[..., nn.Module]] = None,
+        representation_size: Optional[int] = None,
+        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
+        conv_stem_configs: Optional[List[ConvStemConfig]] = None,
+
         **kwargs: Any,
-
-    ) -> None:
+    ):
         super().__init__()
+        weights = ViT_B_16_Weights.verify(weights)
         _log_api_usage_once(self)
+        image_size = kwargs.pop("image_size", 224)
+        torch._assert(image_size % patch_size == 0, "Input shape indivisible by patch size!")
+        self.image_size = image_size
+        self.patch_size = patch_size
+        self.hidden_dim = hidden_dim
+        self.mlp_dim = mlp_dim
+        self.attention_dropout = attention_dropout
+        self.dropout = dropout
         self.num_classes = num_classes
-        self._output_size = 8*embed_dim
+        self.representation_size = representation_size
+        self.norm_layer = norm_layer
 
-        weights = Swin_T_Weights.verify(weights)
         if weights is not None:
             _ovewrite_named_param(kwargs, "num_classes", len(weights.meta["categories"]))
+            assert weights.meta["min_size"][0] == weights.meta["min_size"][1]
+            _ovewrite_named_param(kwargs, "image_size", weights.meta["min_size"][0])
 
-        if block is None:
-            block = SwinTransformerBlock
 
-        if norm_layer is None:
-            norm_layer = partial(nn.LayerNorm, eps=1e-5)
-
-        #if patch_embed is None:
-        #    patch_embed = PatchEmbed #3d
-
-        # split image into non-overlapping patches
-        #self.patch_embed = patch_embed(patch_size=patch_size, embed_dim=embed_dim, norm_layer=norm_layer)
-        #self.pos_drop = nn.Dropout(p=dropout)
-
-        layers: List[nn.Module] = []
-        # split image into non-overlapping patches
-        layers.append(
-            nn.Sequential(
-                nn.Conv2d(
-                    3, embed_dim, kernel_size=(patch_size[0], patch_size[1]), stride=(patch_size[0], patch_size[1])
-                ),
-                Permute([0, 2, 3, 1]),
-                norm_layer(embed_dim),
-            )
-        )
-
-        total_stage_blocks = sum(depths)
-        stage_block_id = 0
-        # build SwinTransformer blocks
-        for i_stage in range(len(depths)):
-            stage: List[nn.Module] = []
-            dim = embed_dim * 2**i_stage
-            for i_layer in range(depths[i_stage]):
-                # adjust stochastic depth probability based on the depth of the stage block
-                sd_prob = stochastic_depth_prob * float(stage_block_id) / (total_stage_blocks - 1)
-                stage.append(
-                    block(
-                        dim,
-                        num_heads[i_stage],
-                        window_size=window_size,
-                        shift_size=[0 if i_layer % 2 == 0 else w // 2 for w in window_size],
-                        mlp_ratio=mlp_ratio,
-                        dropout=dropout,
-                        attention_dropout=attention_dropout,
-                        stochastic_depth_prob=sd_prob,
-                        norm_layer=norm_layer,
-                    )
+        if conv_stem_configs is not None:
+            # As per https://arxiv.org/abs/2106.14881
+            seq_proj = nn.Sequential()
+            prev_channels = 3
+            for i, conv_stem_layer_config in enumerate(conv_stem_configs):
+                seq_proj.add_module(
+                    f"conv_bn_relu_{i}",
+                    Conv2dNormActivation(
+                        in_channels=prev_channels,
+                        out_channels=conv_stem_layer_config.out_channels,
+                        kernel_size=conv_stem_layer_config.kernel_size,
+                        stride=conv_stem_layer_config.stride,
+                        norm_layer=conv_stem_layer_config.norm_layer,
+                        activation_layer=conv_stem_layer_config.activation_layer,
+                    ),
                 )
-                stage_block_id += 1
-            layers.append(nn.Sequential(*stage))
-            # add patch merging layer
-            if i_stage < (len(depths) - 1):
-                layers.append(downsample_layer(dim, norm_layer))
+                prev_channels = conv_stem_layer_config.out_channels
+            seq_proj.add_module(
+                "conv_last", nn.Conv2d(in_channels=prev_channels, out_channels=hidden_dim, kernel_size=1)
+            )
+            self.conv_proj: nn.Module = seq_proj
+        else:
+            self.conv_proj = nn.Conv2d(
+                in_channels=3, out_channels=hidden_dim, kernel_size=patch_size, stride=patch_size
+            )
 
-        self.features = nn.Sequential(*layers)
+        seq_length = (image_size // patch_size) ** 2
 
-        num_features = embed_dim * 2 ** (len(depths) - 1)
-        self.norm = norm_layer(num_features)
-        self.permute = Permute([0, 3, 1, 2])  # B H W C -> B C H W
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
-        self.flatten = nn.Flatten(1)
-        self.head = nn.Linear(num_features, num_classes)
+        # Add a class token
+        self.class_token = nn.Parameter(torch.zeros(1, 1, hidden_dim))
+        seq_length += 1
 
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                nn.init.trunc_normal_(m.weight, std=0.02)
-                if m.bias is not None:
-                    nn.init.zeros_(m.bias)
+        self.encoder = Encoder(
+            seq_length,
+            num_layers,
+            num_heads,
+            hidden_dim,
+            mlp_dim,
+            dropout,
+            attention_dropout,
+            norm_layer,
+        )
+        self.seq_length = seq_length
 
-        if weights is not None:
-            self.load_state_dict(weights.get_state_dict(progress=progress), strict=False)  # , check_hash=True))
+        heads_layers: OrderedDict[str, nn.Module] = OrderedDict()
+        if representation_size is None:
+            heads_layers["head"] = nn.Linear(hidden_dim, num_classes)
+        else:
+            heads_layers["pre_logits"] = nn.Linear(hidden_dim, representation_size)
+            heads_layers["act"] = nn.Tanh()
+            heads_layers["head"] = nn.Linear(representation_size, num_classes)
 
-    def forward(self, video: Tensor):#, src_length: Tensor, mask: Tensor) -> (Tensor, Tensor):
-        x = video
-        print("VIDEO SRC")
-        print(x.shape)
-        x = x[0]
+        self.heads = nn.Sequential(heads_layers)
 
-        #print(x.size())
-        x = x.permute(0, 3, 1, 2)
-        #print(x.size())
-        x = self.features(x)
-        #print(x.size())
-        x = self.norm(x)
-        #print(x.size())
+        if isinstance(self.conv_proj, nn.Conv2d):
+            # Init the patchify stem
+            fan_in = self.conv_proj.in_channels * self.conv_proj.kernel_size[0] * self.conv_proj.kernel_size[1]
+            nn.init.trunc_normal_(self.conv_proj.weight, std=math.sqrt(1 / fan_in))
+            if self.conv_proj.bias is not None:
+                nn.init.zeros_(self.conv_proj.bias)
+        elif self.conv_proj.conv_last is not None and isinstance(self.conv_proj.conv_last, nn.Conv2d):
+            # Init the last 1x1 conv of the conv stem
+            nn.init.normal_(
+                self.conv_proj.conv_last.weight, mean=0.0, std=math.sqrt(2.0 / self.conv_proj.conv_last.out_channels)
+            )
+            if self.conv_proj.conv_last.bias is not None:
+                nn.init.zeros_(self.conv_proj.conv_last.bias)
 
-        x = self.permute(x)
-        #print(x.size())
+        if hasattr(self.heads, "pre_logits") and isinstance(self.heads.pre_logits, nn.Linear):
+            fan_in = self.heads.pre_logits.in_features
+            nn.init.trunc_normal_(self.heads.pre_logits.weight, std=math.sqrt(1 / fan_in))
+            nn.init.zeros_(self.heads.pre_logits.bias)
 
-        x = self.avgpool(x)
-        #print(x.size())
+        if isinstance(self.heads.head, nn.Linear):
+            nn.init.zeros_(self.heads.head.weight)
+            nn.init.zeros_(self.heads.head.bias)
+        if weights:
+            self.load_state_dict(weights.get_state_dict(progress=progress, check_hash=True), strict=False)
 
-        x = self.flatten(x)
-        #print(x.size())
-        #x = torch.unsqueeze(x, 0)
-        print(x.size())
-        #x = self.head(x)
-        #print(x.size())
 
-        #print(video.size())
-        #print(type(x))
-        # x: B C T H W
-        #B, F, H, W, C = x.size()
-        #x = x.permute(0, 4, 1, 2, 3)
-        #print(x.size())
-        #x = self.patch_embed(x)  # B _T _H _W C
-        #print(x.size())
-        #x = self.pos_drop(x)
-        #print(x.size())
-        #x = self.features(x)  # B _T _H _W C
-        #print("x.shape")
-        #print(x.shape)
-        #x = self.norm(x)
-        #print("x.shape after norm")
-        #print(x.shape)
-        #x = x.permute(0, 4, 1, 2, 3)  # B, C, _T, _H, _W
-        #print("x.shape after permute")
-        #print(x.shape)
-        #x = self.avgpool(x)
-        #print("x.shape after avg pool")
-        #print(x.shape)
-        #x = torch.flatten(x,3)
-        #print("x.shape after flatten")
-        ##print(x.shape)
-        #upsample = nn.ConvTranspose2d(768, 768, 3, stride=2, padding=1)
-        #x = upsample(x, output_size=(torch.Size([B, 768, F, 1])))
-       # print("x.shape after upsample")
-       # print(x.shape)
-        #x = x.permute(0, 2, 1, 3)  # B, C, _T, _H, _W
-        #print("x.shape after permute")
-        #print(x.shape)
-        #x = torch.flatten(x, 2)
-        #print("x.shape after flatten")
-        #print(x.shape)
+    def _process_input(self, x: torch.Tensor) -> torch.Tensor:
+        n, c, h, w = x.shape
+        p = self.patch_size
+        torch._assert(h == self.image_size, f"Wrong image height! Expected {self.image_size} but got {h}!")
+        torch._assert(w == self.image_size, f"Wrong image width! Expected {self.image_size} but got {w}!")
+        n_h = h // p
+        n_w = w // p
+
+        # (n, c, h, w) -> (n, hidden_dim, n_h, n_w)
+        x = self.conv_proj(x)
+        # (n, hidden_dim, n_h, n_w) -> (n, hidden_dim, (n_h * n_w))
+        x = x.reshape(n, self.hidden_dim, n_h * n_w)
+
+        # (n, hidden_dim, (n_h * n_w)) -> (n, (n_h * n_w), hidden_dim)
+        # The self attention layer expects inputs in the format (N, S, E)
+        # where S is the source sequence length, N is the batch size, E is the
+        # embedding dimension
+        x = x.permute(0, 2, 1)
+
+        return x
+
+    def forward(self, x: torch.Tensor):
+        # Reshape and permute the input tensor
+        x = self._process_input(x)
+        n = x.shape[0]
+
+        # Expand the class token to the full batch
+        batch_class_token = self.class_token.expand(n, -1, -1)
+        x = torch.cat([batch_class_token, x], dim=1)
+
+        x = self.encoder(x)
+        # Classifier "token" as used by standard language architectures
+        x = x[:, 0]
+
+        x = self.heads(x)
+
         return x, None
 
 
