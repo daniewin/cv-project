@@ -387,7 +387,7 @@ class VisionTransformerEncoder(Encoder):
             nn.init.zeros_(self.heads.head.weight)
             nn.init.zeros_(self.heads.head.bias)
         if weights:
-            self.load_state_dict(weights.get_state_dict(progress=progress, check_hash=True), strict=False)
+            self.load_state_dict(weights.get_state_dict(progress=progress), strict=False)
 
 
     def _process_input(self, x: torch.Tensor) -> torch.Tensor:
