@@ -76,7 +76,8 @@ class SignTranslationDataset(data.Dataset):
             video_path = os.path.join(path, seq_id + ".mp4")
             if Path(video_path).exists() and counter < 1500:
                 sign_video, _, _ = read_video(video_path, output_format="TCHW", pts_unit="sec")
-                torchvision.utils.save_image(sign_video[0], "img0.png")
+                print("signvideo frame", sign_video[0])
+                torchvision.utils.save_image(np.uint8(sign_video[0]), "img0.png")
                 print(sign_video.shape)
                 no_frames = sign_video.shape[0]
                 if no_frames >= 100 and no_frames <= 200:  # dont use shorter videos
