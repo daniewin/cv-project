@@ -272,7 +272,7 @@ class VisionTransformerEncoder(Encoder):
     def __init__(
         self,
         weights: Optional[WeightsEnum],
-        progress: bool,
+        progress: bool = True,
         patch_size=16,
         num_layers=12,
         num_heads=12,
