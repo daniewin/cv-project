@@ -7,6 +7,7 @@ from torchtext.data import Field, RawField
 from typing import List, Tuple
 import pickle
 import gzip
+import matplotlib.pyplot as plt
 from PIL import Image
 import torch
 import os
@@ -77,7 +78,8 @@ class SignTranslationDataset(data.Dataset):
             if Path(video_path).exists() and counter < 1500:
                 sign_video, _, _ = read_video(video_path, output_format="TCHW", pts_unit="sec")
                 print("signvideo frame", sign_video[0])
-                torchvision.utils.save_image(torch.from_numpy(sign_video[0]), "img0.png")
+
+                torchvision.utils.save_image(sign_video[0], "img0.png")
                 print(sign_video.shape)
                 no_frames = sign_video.shape[0]
                 if no_frames >= 100 and no_frames <= 200:  # dont use shorter videos
