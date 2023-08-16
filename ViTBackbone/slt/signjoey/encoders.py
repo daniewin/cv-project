@@ -391,6 +391,7 @@ class VisionTransformerEncoder(Encoder):
 
 
     def _process_input(self, x: torch.Tensor) -> torch.Tensor:
+
         n, c, h, w = x.shape
         p = self.patch_size
         torch._assert(h == self.image_size, f"Wrong image height! Expected {self.image_size} but got {h}!")
@@ -412,6 +413,8 @@ class VisionTransformerEncoder(Encoder):
         return x
 
     def forward(self, x: torch.Tensor):
+        # extract batch
+        x = x[0]
         # Reshape and permute the input tensor
         x = self._process_input(x)
         n = x.shape[0]
