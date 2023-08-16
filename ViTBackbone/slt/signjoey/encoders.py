@@ -429,9 +429,9 @@ class VisionTransformerEncoder(Encoder):
 
         x = self.encoder(x)
         # Classifier "token" as used by standard language architectures
+        print(x.size())
         x = x[:, 0]
-
-        x = self.heads(x)
+        print(x.size())
 
         return x, None
 
