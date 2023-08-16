@@ -3,6 +3,8 @@
 import torch
 import torch.nn as nn
 from torchvision.models.vision_transformer import ViT_B_16_Weights, ConvStemConfig
+from torchvision.models.vision_transformer import Encoder as EncoderPy
+
 import math
 
 from collections import OrderedDict
@@ -340,7 +342,7 @@ class VisionTransformerEncoder(Encoder):
         self.class_token = nn.Parameter(torch.zeros(1, 1, hidden_dim))
         seq_length += 1
 
-        self.encoder = Encoder(
+        self.encoder = EncoderPy(
             seq_length,
             num_layers,
             num_heads,
