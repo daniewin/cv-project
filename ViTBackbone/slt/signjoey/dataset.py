@@ -7,7 +7,6 @@ from torchtext.data import Field, RawField
 from typing import List, Tuple
 import pickle
 import gzip
-import matplotlib.pyplot as plt
 from PIL import Image
 import torch
 import os
