@@ -10,6 +10,7 @@ import gzip
 from PIL import Image
 import torch
 import os
+import torchvision.transforms.functional
 from torchvision.models.vision_transformer import ViT_B_16_Weights
 from signjoey.encoders import VisionTransformerEncoder
 import torch
@@ -144,12 +145,13 @@ class SignTranslationDataset(data.Dataset):
         sign_video_resized = torch.zeros((100, 224, 224, 3))
         #    images.append(sign_video[i])
         for i in range(sign_video.shape[0]):
-            frame = sign_video[i].numpy()
+            frame = sign_video[i]
             print("frame")
-            print(frame)
-            image = Image.fromarray(np.uint(frame), 'RGB')
-            image_resized = image.resize((224, 224))
+            print(frame.shape)
+            image = torchvision.transforms.functional.to_pil_image(frame, 'RGB')
             image.save("img.png")
+            image_resized = image.resize((224, 224))
+            image_resized.save("img_resized.png")
             sign_video_resized[i] = torch.from_numpy(np.array(image_resized)).to(torch.float32)
 
         print("video shape", sign_video.shape)
