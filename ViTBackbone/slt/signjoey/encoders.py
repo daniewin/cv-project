@@ -399,7 +399,7 @@ class VisionTransformerEncoder(Encoder):
         #torch._assert(w == self.image_size, f"Wrong image width! Expected {self.image_size} but got {w}!")
         n_h = h // p
         n_w = w // p
-
+        print(x.shape)
         # (n, c, h, w) -> (n, hidden_dim, n_h, n_w)
         x = self.conv_proj(x)
         # (n, hidden_dim, n_h, n_w) -> (n, hidden_dim, (n_h * n_w))
@@ -416,7 +416,9 @@ class VisionTransformerEncoder(Encoder):
     def forward(self, x: torch.Tensor):
         # extract batch
         x = x[0]
+        print(x.shape)
         x = x.permute(0, 3, 1, 2)
+        print(x.shape)
         # Reshape and permute the input tensor
         x = self._process_input(x)
         n = x.shape[0]
