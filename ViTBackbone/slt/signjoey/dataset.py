@@ -143,7 +143,7 @@ class SignTranslationDataset(data.Dataset):
 
         #    images.append(sign_video[i])
 
-        model = SwinTransformerEncoder(weights=ViT_B_16_Weights.IMAGENET1K_V1)
+        model = VisionTransformerEncoder(weights=ViT_B_16_Weights.IMAGENET1K_V1)
 
         #images = torch.from_numpy(np.asarray(images))
 
