@@ -15,6 +15,7 @@ import torch
 import numpy as np
 from torchvision.io import read_video
 from pathlib import Path
+import torchvision
 
 def load_dataset_file(filename):
     with gzip.open(filename, "rb") as f:
@@ -73,8 +74,11 @@ class SignTranslationDataset(data.Dataset):
 
             video_path = os.path.join(path, seq_id + ".mp4")
             if Path(video_path).exists() and counter < 1500:
-                sign_video, _, _ = read_video(video_path, output_format="THWC", pts_unit="sec")
+                sign_video, _, _ = read_video(video_path, output_format="TCHW", pts_unit="sec")
                 print(sign_video.shape)
+                sign_video = sign_video/255
+                torchvision.utils.save_image(sign_video[0], "img0.png")
+
                 no_frames = sign_video.shape[0]
                 if no_frames >= 100 and no_frames <= 200:  # dont use shorter videos
                     factor = no_frames / 100
@@ -145,6 +149,13 @@ class SignTranslationDataset(data.Dataset):
             # im = Image.fromarray(sign_video[i])
 
         #    images.append(sign_video[i])
+        print(sign_video[0])
+        torchvision.utils.save_image(sign_video[0], "img2.png")
+        #    images.append(sign_video[i])
+        sign_video_resized = torchvision.transforms.functional.resize(sign_video, (224, 224))
+        print("video shape", sign_video.shape)
+        print("type", type(sign_video))
+        torchvision.utils.save_image(sign_video_resized[0], "img_resized.png")
 
         model = SwinTransformerEncoder(weights=Swin_T_Weights.DEFAULT)
 
