@@ -308,7 +308,7 @@ class VisionTransformerEncoder(Encoder):
             _ovewrite_named_param(kwargs, "num_classes", len(weights.meta["categories"]))
             assert weights.meta["min_size"][0] == weights.meta["min_size"][1]
             _ovewrite_named_param(kwargs, "image_size", weights.meta["min_size"][0])
-            print("IMAGE SIZE OVERWRITTEN TO", weights.meta["min_size"][0])
+            #print("IMAGE SIZE OVERWRITTEN TO", weights.meta["min_size"][0])
 
 
         if conv_stem_configs is not None:
@@ -395,8 +395,8 @@ class VisionTransformerEncoder(Encoder):
 
         n, c, h, w = x.shape
         p = self.patch_size
-        torch._assert(h == self.image_size, f"Wrong image height! Expected {self.image_size} but got {h}!")
-        torch._assert(w == self.image_size, f"Wrong image width! Expected {self.image_size} but got {w}!")
+        #torch._assert(h == self.image_size, f"Wrong image height! Expected {self.image_size} but got {h}!")
+        #torch._assert(w == self.image_size, f"Wrong image width! Expected {self.image_size} but got {w}!")
         n_h = h // p
         n_w = w // p
 
