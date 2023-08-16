@@ -75,7 +75,7 @@ class SignTranslationDataset(data.Dataset):
 
             video_path = os.path.join(path, seq_id + ".mp4")
             if Path(video_path).exists() and counter < 1500:
-                sign_video, _, _ = read_video(video_path, output_format="THWC", pts_unit="sec")
+                sign_video, _, _ = read_video(video_path, output_format="TCHW", pts_unit="sec")
                 print(sign_video.shape)
                 no_frames = sign_video.shape[0]
                 if no_frames >= 100 and no_frames <= 200:  # dont use shorter videos
@@ -138,25 +138,12 @@ class SignTranslationDataset(data.Dataset):
         sign_video = sign_video.to(torch.float32)
         print("video shape", sign_video.shape)
         print("type", type(sign_video))
-        #print(sign_video[24])
-        #sign_video = sign_video.numpy()
-        #for i in range(sign_video.shape[0]):
-            # im = Image.fromarray(sign_video[i])
-        sign_video_resized = torch.zeros((100, 224, 224, 3))
+        torchvision.utils.save_image(sign_video[0], "img.png")
         #    images.append(sign_video[i])
-        for i in range(sign_video.shape[0]):
-            frame = sign_video[i]
-            print("frame")
-            print(frame.shape)
-            frame = np.swapaxes(frame, 0, 2)
-            image = torchvision.transforms.functional.to_pil_image(frame, 'RGB')
-            image.save("img.png")
-            image_resized = image.resize((224, 224))
-            image_resized.save("img_resized.png")
-            sign_video_resized[i] = torch.from_numpy(np.array(image_resized)).to(torch.float32)
-
+        sign_video_resized = torchvision.transforms.functional.resize(sign_video, (224, 224))
         print("video shape", sign_video.shape)
         print("type", type(sign_video))
+        torchvision.utils.save_image(sign_video_resized[0], "img_resized.png")
 
         model = VisionTransformerEncoder(weights=ViT_B_16_Weights.DEFAULT)
 
