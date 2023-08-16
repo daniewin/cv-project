@@ -72,6 +72,9 @@ class SignTranslationDataset(data.Dataset):
                         "text": s["text"],
                         "sign": s["sign"],
                     }
+                print(samples[seq_id]["name"])
+                print(samples[seq_id]["sign"].shape)
+                print(samples[seq_id]["sign"])
 
         examples = []
         for s in samples:
