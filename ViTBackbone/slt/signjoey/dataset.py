@@ -148,6 +148,7 @@ class SignTranslationDataset(data.Dataset):
             frame = sign_video[i]
             print("frame")
             print(frame.shape)
+            frame = np.swapaxes(frame, 0, 2)
             image = torchvision.transforms.functional.to_pil_image(frame, 'RGB')
             image.save("img.png")
             image_resized = image.resize((224, 224))
