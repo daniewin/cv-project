@@ -147,7 +147,7 @@ class SignTranslationDataset(data.Dataset):
             frame = sign_video[i].numpy()
             image = Image.fromarray(frame, 'RGB')
             image_resized = image.resize((224, 244))
-            image.show()
+            image.save("img.png")
             sign_video_resized[i] = np.array(image_resized).to(torch.float32)
 
         print("video shape", sign_video.shape)
