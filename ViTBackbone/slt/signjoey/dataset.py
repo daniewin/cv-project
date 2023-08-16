@@ -134,7 +134,7 @@ class SignTranslationDataset(data.Dataset):
         super().__init__(examples, fields, **kwargs)
 
     def get_embeddings(self, sign_video):
-        #sign_video = sign_video.to(torch.float32)
+        sign_video = sign_video.to(torch.float32)
         print("video shape", sign_video.shape)
         print("type", type(sign_video))
         #print(sign_video[24])
@@ -144,7 +144,7 @@ class SignTranslationDataset(data.Dataset):
         sign_video_resized = torch.zeros((100, 224, 224, 3))
         #    images.append(sign_video[i])
         for i in range(sign_video.shape[0]):
-            frame = sign_video[i]
+            frame = sign_video[i].numpy()
             image = Image.fromarray(frame, 'RGB')
             image_resized = image.resize((224, 244))
             image.show()
