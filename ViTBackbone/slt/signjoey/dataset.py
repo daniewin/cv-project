@@ -76,6 +76,7 @@ class SignTranslationDataset(data.Dataset):
             video_path = os.path.join(path, seq_id + ".mp4")
             if Path(video_path).exists() and counter < 1500:
                 sign_video, _, _ = read_video(video_path, output_format="TCHW", pts_unit="sec")
+                torchvision.utils.save_image(sign_video[0], "img0.png")
                 print(sign_video.shape)
                 no_frames = sign_video.shape[0]
                 if no_frames >= 100 and no_frames <= 200:  # dont use shorter videos
@@ -135,7 +136,7 @@ class SignTranslationDataset(data.Dataset):
         super().__init__(examples, fields, **kwargs)
 
     def get_embeddings(self, sign_video):
-        sign_video = sign_video.to(torch.float32)
+        #sign_video = sign_video.to(torch.float32)
         print("video shape", sign_video.shape)
         print("type", type(sign_video))
         print(sign_video[0])
