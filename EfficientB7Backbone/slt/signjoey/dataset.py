@@ -9,6 +9,8 @@ import pickle
 import gzip
 import torch
 import os
+from PIL import Image
+import timm
 from torchvision.models.swin_transformer import swin_t, Swin_T_Weights
 from signjoey.encoders import SwinTransformerEncoder
 import torch
@@ -77,8 +79,6 @@ class SignTranslationDataset(data.Dataset):
                 sign_video, _, _ = read_video(video_path, output_format="TCHW", pts_unit="sec")
                 print(sign_video.shape)
                 sign_video = sign_video/255
-                torchvision.utils.save_image(sign_video[0], "img0.png")
-
                 no_frames = sign_video.shape[0]
                 if no_frames >= 100 and no_frames <= 200:  # dont use shorter videos
                     factor = no_frames / 100
@@ -143,26 +143,23 @@ class SignTranslationDataset(data.Dataset):
         sign_video = sign_video.to(torch.float32)
         print("video shape", sign_video.shape)
         print("type", type(sign_video))
-        #print(sign_video[24])
-        #sign_video = sign_video.numpy()
-        #for i in range(sign_video.shape[0]):
-            # im = Image.fromarray(sign_video[i])
 
-        #    images.append(sign_video[i])
-        print(sign_video[0])
-        torchvision.utils.save_image(sign_video[0], "img2.png")
-        #    images.append(sign_video[i])
-        sign_video_resized = torchvision.transforms.functional.resize(sign_video, (224, 224))
-        print("video shape", sign_video.shape)
-        print("type", type(sign_video))
-        torchvision.utils.save_image(sign_video_resized[0], "img_resized.png")
+        model = timm.create_model(
+            'tf_efficientnet_b7.ap_in1k',
+            pretrained=True,
+            num_classes=0,  # remove classifier nn.Linear
+        )
+        model = model.eval()
 
-        model = SwinTransformerEncoder(weights=Swin_T_Weights.DEFAULT)
+        # get model specific transforms (normalization, resize)
+        data_config = timm.data.resolve_model_data_config(model)
+        transforms = timm.data.create_transform(**data_config, is_training=False)
 
-        #images = torch.from_numpy(np.asarray(images))
+        output = model.forward_features(transforms(sign_video))
+        # output is unpooled, a (1, 2560, 19, 19) shaped tensor
 
-        with torch.no_grad():
-            outputs = model(sign_video.unsqueeze(0))[0]
-        #output = outputs.pooler_output
+        outputs = [frame.flatten() for frame in output]
+        print("output type", type(outputs))
+        outputs = torch.from_numpy(np.asarray(outputs))
         print("embedding shape", outputs.shape)
         return outputs
