@@ -412,8 +412,8 @@ class SwinTransformerEncoder(Encoder):
         print(x.size())
         x = self.features(x)
         print(x.size())
-        #x = self.norm(x)
-        #print(x.size())
+        x = self.norm(x)
+        print(x.size())
 
         x = self.permute(x)
         print(x.size())

@@ -7,6 +7,8 @@ from torchtext.data import Field, RawField
 from typing import List, Tuple
 import pickle
 import gzip
+from transformers import AutoImageProcessor, EfficientNetModel
+from datasets import load_dataset
 import torch
 import os
 from PIL import Image
@@ -143,23 +145,29 @@ class SignTranslationDataset(data.Dataset):
         sign_video = sign_video.to(torch.float32)
         print("video shape", sign_video.shape)
         print("type", type(sign_video))
+        print(sign_video[0])
+        sign_video_resized = torchvision.transforms.functional.resize(sign_video, (224, 224))
+        print("video shape", sign_video.shape)
+        print("type", type(sign_video))
 
-        model = timm.create_model(
-            'tf_efficientnet_b7.ap_in1k',
-            pretrained=True,
-            num_classes=0,  # remove classifier nn.Linear
-        )
-        model = model.eval()
 
-        # get model specific transforms (normalization, resize)
-        data_config = timm.data.resolve_model_data_config(model)
-        transforms = timm.data.create_transform(**data_config, is_training=False)
+        dataset = load_dataset("huggingface/cats-image")
 
-        output = model.forward_features(transforms(sign_video))
-        # output is unpooled, a (1, 2560, 19, 19) shaped tensor
+        image = dataset["test"]["image"][0]
 
-        outputs = [frame.flatten() for frame in output]
-        print("output type", type(outputs))
-        outputs = torch.from_numpy(np.asarray(outputs))
+        image_processor = AutoImageProcessor.from_pretrained("google/efficientnet-b7")
+
+        model = EfficientNetModel.from_pretrained("google/efficientnet-b7")
+
+        inputs = image_processor(sign_video_resized, return_tensors="pt")
+
+        with torch.no_grad():
+            outputs = model(**inputs)
+
+        last_hidden_states = outputs.last_hidden_state
+        outputs = [frame.flatten() for frame in last_hidden_states]
+        torch.from_numpy(np.asarray(outputs))
+
+        #output = outputs.pooler_output
         print("embedding shape", outputs.shape)
         return outputs
