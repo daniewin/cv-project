@@ -8,13 +8,12 @@ from typing import List, Tuple
 import pickle
 import gzip
 from transformers import AutoImageProcessor, EfficientNetModel
-from datasets import load_dataset
 import torch
 import os
 from PIL import Image
 import timm
 from torchvision.models.swin_transformer import swin_t, Swin_T_Weights
-from signjoey.encoders import SwinTransformerEncoder
+#from signjoey.encoders import SwinTransformerEncoder
 import torch
 import numpy as np
 from torchvision.io import read_video
@@ -77,7 +76,7 @@ class SignTranslationDataset(data.Dataset):
             seq_id = seq_id.replace("test/", "")
 
             video_path = os.path.join(path, seq_id + ".mp4")
-            if Path(video_path).exists() and counter < 1500:
+            if Path(video_path).exists() and counter < 1000:
                 sign_video, _, _ = read_video(video_path, output_format="TCHW", pts_unit="sec")
                 print(sign_video.shape)
                 sign_video = sign_video/255
@@ -148,25 +147,24 @@ class SignTranslationDataset(data.Dataset):
         print(sign_video[0])
         sign_video_resized = torchvision.transforms.functional.resize(sign_video, (224, 224))
         print("video shape", sign_video.shape)
-        print("type", type(sign_video))
+        print("type", type(sign_video_resized))
+        #torchvision.utils.save_image(sign_video_resized[0], "imgres.png")
 
 
-        dataset = load_dataset("huggingface/cats-image")
+        image_processor = AutoImageProcessor.from_pretrained("google/efficientnet-b0")
 
-        image = dataset["test"]["image"][0]
-
-        image_processor = AutoImageProcessor.from_pretrained("google/efficientnet-b7")
-
-        model = EfficientNetModel.from_pretrained("google/efficientnet-b7")
+        model = EfficientNetModel.from_pretrained("google/efficientnet-b0")
 
         inputs = image_processor(sign_video_resized, return_tensors="pt")
-
+        print("inputs preprocess done")
         with torch.no_grad():
             outputs = model(**inputs)
-
+        print("received outputs")
         last_hidden_states = outputs.last_hidden_state
+        print("shape of received outputs", last_hidden_states.shape)
+        
         outputs = [frame.flatten() for frame in last_hidden_states]
-        torch.from_numpy(np.asarray(outputs))
+        outputs = torch.from_numpy(np.asarray(outputs))
 
         #output = outputs.pooler_output
         print("embedding shape", outputs.shape)
