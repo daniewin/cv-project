@@ -55,9 +55,7 @@ class SignTranslationDataset(data.Dataset):
         #if not isinstance(path, list):
         #    path = [path]
 
-        print("path for data", path)
         annotation_file = os.path.join(path, "annotations.gzip")
-        print("path for annotation file", annotation_file)
         samples = {}
         with gzip.open(annotation_file, 'rb') as f:
             annotations = pickle.load(f)
@@ -77,12 +75,9 @@ class SignTranslationDataset(data.Dataset):
             if Path(video_path).exists() and counter < 1500:
                 sign_video, _, _ = read_video(video_path, output_format="THWC", pts_unit="sec")
                 sign_video = sign_video/255
-                print(sign_video.shape)
                 no_frames = sign_video.shape[0]
                 if no_frames >= 100 and no_frames <= 200: # dont use shorter videos
                     factor = no_frames/100
-                    print("downsampling factor is ", factor)
-                    #sign_video_np = np.zeros((no_frames//factor, sign_video.shape[1], sign_video.shape[2], 3))
                     lower_step = int(np.floor(factor))
                     upper_step = int(np.ceil(factor))
                     decimal = int((factor % 1)*100)
@@ -91,14 +86,9 @@ class SignTranslationDataset(data.Dataset):
                     end_1 = (100-decimal) * step_1
                     step_2 = upper_step
                     start_2 = end_1 - 1 + step_2
-                    #print("downsampled video frames", no_frames//factor)
                     sign_video_1 = sign_video[start_1:end_1:step_1]  # take every factor-th frame
                     sign_video_2 = sign_video[start_2::step_2]   # take every factor-th frame
                     sign_video = torch.cat((sign_video_1, sign_video_2), 0)
-                    #sign_video = torch.from_numpy(sign_video_np)
-                    print("downsampled video frames", sign_video.shape[0])
-                    print(path)
-                    print(counter)
                     counter += 1
 
                     if seq_id in samples:
