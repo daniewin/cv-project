@@ -97,11 +97,6 @@ class SignModel(nn.Module):
         encoder_output, encoder_hidden = self.encode(
             sgn=sgn, sgn_mask=sgn_mask, sgn_length=sgn_lengths
         )
-        print("ENCODER OUTPUT")
-        print(encoder_output.shape)
-        #print(encoder_hidden)
-
-        #print(type(encoder_output))
         #encoder_output = encoder_output[:, :170, :]
         if self.do_recognition:
             # Gloss Recognition Part
@@ -116,8 +111,6 @@ class SignModel(nn.Module):
 
         if self.do_translation:
             unroll_steps = txt_input.size(1)
-            #print("UNROLL STEPS")
-            #print(unroll_steps)
             decoder_outputs = self.decode(
                 encoder_output=encoder_output,
                 encoder_hidden=encoder_hidden,
@@ -128,11 +121,6 @@ class SignModel(nn.Module):
             )
         else:
             decoder_outputs = None
-        #print("DECODER OUTPUTS")
-        #print(decoder_outputs[0].shape)
-        #print(decoder_outputs[1].shape)
-
-        #(outputs, hidden, att_probs, att_vectors)
         return decoder_outputs, gloss_probabilities
 
     def encode(
@@ -216,11 +204,6 @@ class SignModel(nn.Module):
         if self.do_recognition:
             assert gloss_probabilities is not None
             # Calculate Recognition Loss
-            print("gloss probabilities")
-            print(gloss_probabilities.shape)
-            #print("GLOSS PROBABILITIES BEFORE LOSS CALCULATION")
-            #print(gloss_probabilities.shape)
-            #print(batch.gls.shape)
             recognition_loss = (
                 recognition_loss_function(
                     gloss_probabilities,
@@ -414,8 +397,6 @@ def build_model(
         )
 
     if do_recognition:
-        #print("ENCODER OUTPUT SIZE")
-        #print(encoder.output_size)
         gloss_output_layer = nn.Linear(encoder.output_size, len(gls_vocab))
         if cfg["encoder"].get("freeze", False):
             freeze_params(gloss_output_layer)
@@ -430,7 +411,6 @@ def build_model(
             vocab_size=len(txt_vocab),
             padding_idx=txt_padding_idx,
         )
-        print("text embeddings", txt_embed)
         dec_dropout = cfg["decoder"].get("dropout", 0.0)
         dec_emb_dropout = cfg["decoder"]["embeddings"].get("dropout", dec_dropout)
         if cfg["decoder"].get("type", "recurrent") == "transformer":
