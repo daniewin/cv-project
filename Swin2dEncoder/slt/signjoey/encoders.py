@@ -245,7 +245,6 @@ class TransformerEncoder(Encoder):
 
         for layer in self.layers:
             x = layer(x, mask)
-            print("after encoder layer", x.size())
         return self.layer_norm(x), None
 
     def __repr__(self):
@@ -398,39 +397,23 @@ class SwinTransformerEncoder(Encoder):
         # freeze model
         #freeze_params(self)
 
-    def forward(self, video: Tensor):#, src_length: Tensor, mask: Tensor) -> (Tensor, Tensor):
+    def forward(self, video: Tensor):
         x = video
-        print("VIDEO SRC")
-        print(x.shape)
         x = x[0]
-        print(x.size())
         x = x.permute(0, 3, 1, 2)
-        print(x.size())
         x = self.features(x)
-        print(x.size())
         x = self.norm(x)
-        print(x.size())
-
         x = self.permute(x)
-        print(x.size())
-
         x = self.avgpool(x)
-        print(x.size())
-
         x = self.flatten(x)
-        print("before linear", x.size())
         x = self.linear(x)
-        print("after linear", x.size())
         x = torch.unsqueeze(x, 0)
-        print(x.size())
         return x, None
 
 
 
     def __repr__(self):
-        #return "%s(num_layers=%r, num_heads=%r)" % (
         return "%s(num_layers=%r)" % (
             self.__class__.__name__,
             len(self.layers),
-            #self.layers[0].src_src_att.num_heads,
         )
