@@ -95,18 +95,8 @@ class SignModel(nn.Module):
         :param txt_mask: target mask
         :return: decoder outputs
         """
-        #print("")
-        #print("")
-        #print("sgn before embedder", sgn.shape)
         embed_sgn, _ = self.embedder(sgn)
-        #print("sgn after embedder", embed_sgn.shape)
-        # is this sgn.shape correct?
         sgn_mask = (embed_sgn != torch.zeros(embed_sgn.shape).cuda())[..., 0].unsqueeze(1)
-
-        #print("sgn_mask for encoder is all true??", sgn_mask.all())
-
-
-        #print("sgn lenghts for encoder", sgn_lengths)
 
         encoder_output, encoder_hidden = self.encode(
             sgn=embed_sgn, sgn_mask=sgn_mask, sgn_length=sgn_lengths
@@ -268,13 +258,8 @@ class SignModel(nn.Module):
         :return: stacked_output: hypotheses for batch,
             stacked_attention_scores: attention scores for batch
         """
-        #print("batch sgn before embedder", batch.sgn.shape)
         batch_embed_sgn, _ = self.embedder(batch.sgn)
-        #print("batch sgn after embedder", batch_embed_sgn.shape)
-        # is this sgn.shape correct?
         batch.sgn_mask = (batch_embed_sgn != torch.zeros(batch_embed_sgn.shape).cuda())[..., 0].unsqueeze(1)
-        #print("batch sgn mask", batch.sgn_mask.shape)
-        #print("batch sgn lengths", batch.sgn_lengths)
         encoder_output, encoder_hidden = self.encode(
             sgn=batch_embed_sgn, sgn_mask=batch.sgn_mask, sgn_length=batch.sgn_lengths
         )
