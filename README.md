@@ -5,13 +5,17 @@ Sign Language Recognition and Translation
 This repo contains the code for different architectures realising training and evaluation of Sign Language Translation.
 
 ## Implementations of Different Backbones for Feature Extraction
-SLTCNNBackbone: Original implementation of baseline model from the paper Camgöz, N. C. et al. (2020b). Sign language transformers: Joint end-to-end sign language recognition and translation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition.
-EfficientB7Backbone: Uses the EfficientnetB7 (or alternatively EfficientnetB0) as backbone from the paper Tan, M. et al. (2019). Efficientnet: Re-thinking model scaling for convolutional neural networks. In International conference on machine learning, pages 6105–6114. PMLR.
-ViTBackbone: Uses the Vision Transformer as backbone from the paper Dosovitskiy, A. et al. (2020). An image is worth 16x16 words: Transformers for image recognition at scale.
+SLTCNNBackbone: Original implementation of baseline model from the paper Camgöz, N. C. et al. (2020b). Sign language transformers: Joint end-to-end sign language recognition and translation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition.  
+
+EfficientB7Backbone: Uses the EfficientnetB7 (or alternatively EfficientnetB0) as backbone from the paper Tan, M. et al. (2019). Efficientnet: Re-thinking model scaling for convolutional neural networks. In International conference on machine learning, pages 6105–6114. PMLR.  
+
+ViTBackbone: Uses the Vision Transformer as backbone from the paper Dosovitskiy, A. et al. (2020). An image is worth 16x16 words: Transformers for image recognition at scale.  
+
 Swin2DBackbone: Uses the Swin Transformer as backbone from the paper Liu, Z. et al. (2021). Swin transformer: Hierarchical vision transformer using shifted windows. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 10012–1002.
 
 ## Implementations of different Encoders
-Swin2dEncoder: Uses the Swin Transformer as encoder from the paper Liu, Z. et al. (2021). Swin transformer: Hierarchical vision transformer using shifted windows. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 10012–1002.
+Swin2dEncoder: Uses the Swin Transformer as encoder from the paper Liu, Z. et al. (2021). Swin transformer: Hierarchical vision transformer using shifted windows. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 10012–1002.  
+
 Swin3dEncoder: Uses the Video Swin Transformer as encoder from the paper Liu, Z. et al. (2022). Video swin transformer. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 3202–321.
 
 
