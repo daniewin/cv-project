@@ -244,14 +244,12 @@ class TransformerEncoder(Encoder):
             - hidden_concat: last hidden state with
                 shape (batch_size, directions*hidden)
         """
-        print("embed src shape", embed_src.shape)
         x = self.pe(embed_src)  # add position encoding to word embeddings
         x = self.emb_dropout(x)
 
         for layer in self.layers:
             x = layer(x, mask)
         x = self.layer_norm(x)
-        print("output encoder before return", x.shape)
         return x, None
 
     def __repr__(self):
@@ -403,38 +401,17 @@ class SwinTransformerEncoder(Encoder):
 
     def forward(self, video: Tensor):#, src_length: Tensor, mask: Tensor) -> (Tensor, Tensor):
         x = video
-        print("VIDEO SRC")
-        print(x.shape)
         x = x[0]
-
-        print(x.size())
         x = x.permute(0, 3, 1, 2)
-        print(x.size())
         x = self.features(x)
-        print(x.size())
         x = self.norm(x)
-        print(x.size())
-
         x = self.permute(x)
-        print(x.size())
-
         x = self.avgpool(x)
-        print(x.size())
-
         x = self.flatten(x)
-        #print(x.size())
-        #x = torch.unsqueeze(x, 0)
-        print(x.size())
 
         return x, None
 
 
 
     def __repr__(self):
-        #return "%s(num_layers=%r, num_heads=%r)" % (
         return "0"
-        """"%s(num_layers=%r)" % (
-            self.__class__.__name__,
-            len(self.layers),
-            #self.layers[0].src_src_att.num_heads,
-        )"""
