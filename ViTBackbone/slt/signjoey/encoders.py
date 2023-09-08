@@ -250,14 +250,12 @@ class TransformerEncoder(Encoder):
             - hidden_concat: last hidden state with
                 shape (batch_size, directions*hidden)
         """
-        print("embed src shape", embed_src.shape)
         x = self.pe(embed_src)  # add position encoding to word embeddings
         x = self.emb_dropout(x)
 
         for layer in self.layers:
             x = layer(x, mask)
         x = self.layer_norm(x)
-        print("output encoder before return", x.shape)
         return x, None
 
     def __repr__(self):
@@ -308,7 +306,6 @@ class VisionTransformerEncoder(Encoder):
             _ovewrite_named_param(kwargs, "num_classes", len(weights.meta["categories"]))
             assert weights.meta["min_size"][0] == weights.meta["min_size"][1]
             _ovewrite_named_param(kwargs, "image_size", weights.meta["min_size"][0])
-            #print("IMAGE SIZE OVERWRITTEN TO", weights.meta["min_size"][0])
 
 
         if conv_stem_configs is not None:
@@ -399,7 +396,6 @@ class VisionTransformerEncoder(Encoder):
         #torch._assert(w == self.image_size, f"Wrong image width! Expected {self.image_size} but got {w}!")
         n_h = h // p
         n_w = w // p
-        print(x.shape)
         # (n, c, h, w) -> (n, hidden_dim, n_h, n_w)
         x = self.conv_proj(x)
         # (n, hidden_dim, n_h, n_w) -> (n, hidden_dim, (n_h * n_w))
@@ -416,9 +412,6 @@ class VisionTransformerEncoder(Encoder):
     def forward(self, x: torch.Tensor):
         # extract batch
         x = x[0]
-        print(x.shape)
-        #x = x.permute(0, 3, 1, 2)
-        print(x.shape)
         # Reshape and permute the input tensor
         x = self._process_input(x)
         n = x.shape[0]
@@ -429,19 +422,9 @@ class VisionTransformerEncoder(Encoder):
 
         x = self.encoder(x)
         # Classifier "token" as used by standard language architectures
-        print(x.size())
         x = x[:, 0]
-        print(x.size())
-
         return x, None
 
 
-
     def __repr__(self):
-        #return "%s(num_layers=%r, num_heads=%r)" % (
         return "0"
-        """"%s(num_layers=%r)" % (
-            self.__class__.__name__,
-            len(self.layers),
-            #self.layers[0].src_src_att.num_heads,
-        )"""
