@@ -23,6 +23,20 @@ Swin3dEncoder: Uses the Video Swin Transformer as encoder from the paper Liu, Z.
 All implementations are based on the Sign Language Transformer implementation by Camgöz et al. (https://github.com/neccam/slt).
 
 ---------------------------------------------------------------------------------------------------------------------
+## Requirements
+
+Install required packages using the ```requirements.txt``` file.
+```
+pip install -r requirements.txt
+```
+
+## Training
+
+Go to ```slt``` folder.
+```
+python -m signjoey train configs/sign.yaml
+```
+---------------------------------------------------------------------------------------------------------------------
 Relevant Papers:
 - Camgöz: Joint End-to-End Sign Language Recognition and Translation, 2020
 - Camgöz: Multi-channel Transformers for Multi-articulatory Sign Language Translation, 2020
