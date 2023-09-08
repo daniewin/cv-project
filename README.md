@@ -1,4 +1,4 @@
-# cv-project
+# cv-project: Sign Language Translation with a Pure Transformer Architecture
 Computer Vision Master's Project 2022/2023
 Sign Language Recognition and Translation
 
