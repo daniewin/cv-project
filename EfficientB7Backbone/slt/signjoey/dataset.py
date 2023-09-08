@@ -78,12 +78,10 @@ class SignTranslationDataset(data.Dataset):
             video_path = os.path.join(path, seq_id + ".mp4")
             if Path(video_path).exists() and counter < 1000:
                 sign_video, _, _ = read_video(video_path, output_format="TCHW", pts_unit="sec")
-                print(sign_video.shape)
                 sign_video = sign_video/255
                 no_frames = sign_video.shape[0]
                 if no_frames >= 100 and no_frames <= 200:  # dont use shorter videos
                     factor = no_frames / 100
-                    # sign_video_np = np.zeros((no_frames//factor, sign_video.shape[1], sign_video.shape[2], 3))
                     lower_step = int(np.floor(factor))
                     upper_step = int(np.ceil(factor))
                     decimal = int((factor % 1) * 100)
@@ -92,14 +90,9 @@ class SignTranslationDataset(data.Dataset):
                     end_1 = (100 - decimal) * step_1
                     step_2 = upper_step
                     start_2 = end_1 - 1 + step_2
-                    # print("downsampled video frames", no_frames//factor)
                     sign_video_1 = sign_video[start_1:end_1:step_1]  # take every factor-th frame
                     sign_video_2 = sign_video[start_2::step_2]  # take every factor-th frame
                     sign_video = torch.cat((sign_video_1, sign_video_2), 0)
-                    # sign_video = torch.from_numpy(sign_video_np)
-                    print("downsampled video frames", sign_video.shape[0])
-                    print(path)
-                    print(counter)
                     counter += 1
 
                     if seq_id in samples:
@@ -118,9 +111,6 @@ class SignTranslationDataset(data.Dataset):
                             "text": s["text"],
                             "sign": self.get_embeddings(sign_video),
                         }
-                    print(samples[seq_id]["name"])
-                    print(samples[seq_id]["sign"].shape)
-                    print(samples[seq_id]["sign"])
 
         examples = []
         for s in samples:
@@ -142,30 +132,20 @@ class SignTranslationDataset(data.Dataset):
 
     def get_embeddings(self, sign_video):
         sign_video = sign_video.to(torch.float32)
-        print("video shape", sign_video.shape)
-        print("type", type(sign_video))
-        print(sign_video[0])
         sign_video_resized = torchvision.transforms.functional.resize(sign_video, (224, 224))
-        print("video shape", sign_video.shape)
-        print("type", type(sign_video_resized))
-        #torchvision.utils.save_image(sign_video_resized[0], "imgres.png")
-
 
         image_processor = AutoImageProcessor.from_pretrained("google/efficientnet-b0")
+        #image_processor = AutoImageProcessor.from_pretrained("google/efficientnet-b7")
 
         model = EfficientNetModel.from_pretrained("google/efficientnet-b0")
+        #model = EfficientNetModel.from_pretrained("google/efficientnet-b7")
 
         inputs = image_processor(sign_video_resized, return_tensors="pt")
-        print("inputs preprocess done")
         with torch.no_grad():
             outputs = model(**inputs)
-        print("received outputs")
         last_hidden_states = outputs.last_hidden_state
-        print("shape of received outputs", last_hidden_states.shape)
         
         outputs = [frame.flatten() for frame in last_hidden_states]
         outputs = torch.from_numpy(np.asarray(outputs))
-
-        #output = outputs.pooler_output
-        print("embedding shape", outputs.shape)
+        
         return outputs
