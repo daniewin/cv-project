@@ -8,10 +8,23 @@ Main model versions: Swin 2d/3d Encoder.
 
 ## Requirements
 
-Install required packages using the ```requirements.txt``` file.
+Install required packages in a with conda environment using the ```requirements.txt``` file.
 ```
-pip install -r requirements.txt
+$ conda create --name <env> --file <this file>
 ```
+(Created from Windows 64Bit)  
+
+
+Alternative: 
+
+Install using the ```requirementspip.txt``` file.
+```
+pip install -r requirementspip.txt
+```
+
+
+
+
 
 ## Training 
 
