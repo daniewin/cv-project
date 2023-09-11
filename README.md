@@ -2,7 +2,9 @@
 Computer Vision Master's Project 2022/2023
 Sign Language Recognition and Translation
 
-This repo contains the code for different architectures realising training and evaluation of Sign Language Translation. For more information read ```CVProject_FinalPaper.pdf```.
+This repo contains the code for different architectures realising training and evaluation of Sign Language Translation. For more information read ```CVProject_FinalPaper.pdf```.  
+
+Main model versions: Swin 2d/3d Encoder.
 
 ## Requirements
 
