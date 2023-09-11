@@ -12,18 +12,6 @@ Install required packages in a with conda environment using the ```requirements.
 ```
 $ conda create --name <env> --file <this file>
 ```
-(Created from Windows 64Bit)  
-
-
-Alternative: 
-
-Install using the ```requirementspip.txt``` file.
-```
-pip install -r requirementspip.txt
-```
-
-
-
 
 
 ## Training 
