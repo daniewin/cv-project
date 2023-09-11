@@ -60,7 +60,7 @@ class SignTranslationDataset(data.Dataset):
         with gzip.open(annotation_file, 'rb') as f:
             annotations = pickle.load(f)
         print("Annotation file loaded successfully from:", annotation_file)
-        print("There annotation file has this number of entries: ", len(annotations))
+        print("The annotation file has this number of entries: ", len(annotations))
 
         print_one_sample = True
         counter = 0
